@@ -49,14 +49,14 @@ class Role(db.Model):
     def __repr__(self):
         return '<Role %r>' % self.name
 
-
 class Follow(db.Model):
     __tablename__ = 'follows'
+    master_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                            primary_key=True)
     follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
                             primary_key=True)
-    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),
-                            primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 
 class User(UserMixin, db.Model):
