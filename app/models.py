@@ -207,20 +207,22 @@ class User(UserMixin, db.Model):
 
     def follow(self, user):
         if not self.is_following(user):
-            f = Follow(followed=user)
-            self.followed.append(f)
+            f = Follow()
+            f.master_id = user.id
+            f.follower_id = self.id
+            self.follower_of.append(f)
 
     def unfollow(self, user):
-        f = self.followed.filter_by(followed_id=user.id).first()
+        f = self.follower_of.filter_by(master_id=user.id).first()
         if f:
-            self.followed.remove(f)
+            self.follower_of.remove(f)
 
     def is_following(self, user):
-        return self.followed.filter_by(
-            followed_id=user.id).first() is not None
+        return self.follower_of.filter_by(
+            master_id=user.id).first() is not None
 
     def is_followed_by(self, user):
-        return self.followers.filter_by(
+        return self.followed_by.filter_by(
             follower_id=user.id).first() is not None
 
     def __repr__(self):
