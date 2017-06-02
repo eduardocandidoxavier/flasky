@@ -74,14 +74,14 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
-    followed = db.relationship('Follow',
-                               foreign_keys=[Follow.follower_id],
-                               backref=db.backref('follower', lazy='joined'),
+    followed_by = db.relationship('Follow',
+                               foreign_keys=[Follow.master_id],
+                               backref=db.backref('follower_of', lazy='joined'),
                                lazy='dynamic',
                                cascade='all, delete-orphan')
-    followers = db.relationship('Follow',
-                                foreign_keys=[Follow.followed_id],
-                                backref=db.backref('followed', lazy='joined'),
+    follower_of = db.relationship('Follow',
+                                foreign_keys=[Follow.follower_id],
+                                backref=db.backref('followed_by', lazy='joined'),
                                 lazy='dynamic',
                                 cascade='all, delete-orphan')
 
@@ -207,24 +207,27 @@ class User(UserMixin, db.Model):
 
     def follow(self, user):
         if not self.is_following(user):
-            f = Follow(follower=self, followed=user)
-            db.session.add(f)
+            f = Follow()
+            f.master_id = user.id
+            f.follower_id = self.id
+            self.follower_of.append(f)
 
     def unfollow(self, user):
-        f = self.followed.filter_by(followed_id=user.id).first()
+        f = self.follower_of.filter_by(master_id=user.id).first()
         if f:
-            db.session.delete(f)
+            self.follower_of.remove(f)
 
     def is_following(self, user):
-        return self.followed.filter_by(
-            followed_id=user.id).first() is not None
+        return self.follower_of.filter_by(
+            master_id=user.id).first() is not None
 
     def is_followed_by(self, user):
-        return self.followers.filter_by(
+        return self.followed_by.filter_by(
             follower_id=user.id).first() is not None
 
     def __repr__(self):
         return '<User %r>' % self.username
+
 
 
 class AnonymousUser(AnonymousUserMixin):
