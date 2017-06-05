@@ -137,20 +137,20 @@ def unfollow(username):
     return redirect(url_for('.user', username=username))
 
 
-@main.route('/followers/<username>')
-def followers(username):
+@main.route('/follower-of/<username>')
+def follower_of(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         flash('Invalid user.')
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
-    pagination = user.followers.paginate(
+    pagination = user.follower_of.paginate(
         page, per_page=current_app.config['FLASKY_FOLLOWERS_PER_PAGE'],
         error_out=False)
-    follows = [{'user': item.follower, 'timestamp': item.timestamp}
+    follows = [{'user': item.follower_of, 'timestamp': item.timestamp}
                for item in pagination.items]
     return render_template('followers.html', user=user, title="Followers of",
-                           endpoint='.followers', pagination=pagination,
+                           endpoint='.follower_of', pagination=pagination,
                            follows=follows)
 
 
@@ -161,10 +161,10 @@ def followed_by(username):
         flash('Invalid user.')
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
-    pagination = user.followed.paginate(
+    pagination = user.followed_by.paginate(
         page, per_page=current_app.config['FLASKY_FOLLOWERS_PER_PAGE'],
         error_out=False)
-    follows = [{'user': item.followed, 'timestamp': item.timestamp}
+    follows = [{'user': item.followed_by, 'timestamp': item.timestamp}
                for item in pagination.items]
     return render_template('followers.html', user=user, title="Followed by",
                            endpoint='.followed_by', pagination=pagination,
